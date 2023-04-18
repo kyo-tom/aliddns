@@ -79,14 +79,18 @@ static string gtb_trim (const string &s) {
 static void gtb_split(const string& s, char c, vector<string>& v) {
     string::size_type i = 0;
     string::size_type j = s.find(c);
+    if (j == string::npos) {
+        v.push_back(s);
+    }
+    else {
+        while (j != string::npos) {
+            v.push_back(s.substr(i, j-i));
+            i = ++j;
+            j = s.find(c, j);
 
-    while (j != string::npos) {
-        v.push_back(s.substr(i, j-i));
-        i = ++j;
-        j = s.find(c, j);
-
-        if (j == string::npos)
-            v.push_back(s.substr(i, s.length()));
+            if (j == string::npos)
+                v.push_back(s.substr(i, s.length()));
+        }
     }
 }
 /**********************************************************************************************************************
@@ -367,11 +371,9 @@ int main (int argc, char *argv[])
         cerr << "Init Alibaba cloud SDK failed." << endl;
         return -EBUSY;
     }
-
     // get ipv4 domain list
     vector<string> domain_list_v4;
     gtb_split(root["domain_name"].asString(), ',', domain_list_v4);
-
     // update each ipv4 domain name
     for (vector<string>::iterator i = domain_list_v4.begin(); i != domain_list_v4.end(); i++) {
         // get domain name record
