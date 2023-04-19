@@ -20,3 +20,7 @@ target_link_libraries(aliddns
         jsoncpp
         curl
 )
+
+install(TARGETS aliddns
+        RUNTIME DESTINATION /usr/local/bin  # 可执行文件安装路径
+        )
