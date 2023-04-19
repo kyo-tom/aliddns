@@ -52,7 +52,69 @@ Skipped:      (ipv6.domain.com)[a55a:a55a:a55a:a55a:a55a:a55a:a55a:a55a]
 When installing Alibaba Cloud SDK, these parts should be compiled and installed: `core` and `alidns`.  
 Use following commands:  
 ```shell
+sudo apt-get install libcurl4-openssl-dev libssl-dev uuid-dev libjsoncpp-dev
+git clone https://github.com/aliyun/aliyun-openapi-cpp-sdk.git
+cd aliyun-openapi-cpp-sdk
+mkdir sdk_build
+cd sdk_build
+sudo cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_PRODUCT=alidns ..
+sudo make
+sudo make install
+```
+or 
+```shell
+sudo apt-get install libcurl4-openssl-dev libssl-dev uuid-dev libjsoncpp-dev
+git clone https://github.com/aliyun/aliyun-openapi-cpp-sdk.git
 sudo sh easyinstall.sh core
 sudo sh easyinstall.sh alidns
 ```
 
+## Build aliddns
+Build from source
+```shell
+sudo apt-get install libcurl4-openssl-dev libssl-dev uuid-dev libjsoncpp-dev
+git clone https://gitea.manaphy.cn:8443/kyotom/aliddns.git
+cd aliddns
+mkdir build
+cd build
+cmake ../
+make
+sudo make install
+```
+
+## Using aliddns by systemd timer
+Create "aliddns.service" and "aliddns.timer" and copy them to "/usr/lib/systemd/system".
+Then:
+```shell
+systemctl daemon-reload
+systemctl enable aliddns.timer
+systemctl start aliddns.timer
+systemctl status aliddns.timer -l
+```
+
+- aliddns.service
+    ```txt
+    [Unit]
+    Description=Aliyun DDNS Client.
+    Wants=network-online.target
+    After=network.target network-online.target
+    
+    [Service]
+    Type=simple
+    User=yourname
+    Group=yourgroup
+    ExecStart=aliddns
+    ```
+2. aliddns.timer
+    ```txt
+    [Unit]
+    Description=Run Aliyun DDNS Client every 10 minutes.
+    
+    [Timer]
+    OnBootSec=0s
+    OnUnitActiveSec=10min
+    Unit=aliddns.service
+    
+    [Install]
+    WantedBy=multi-user.target
+    ```
