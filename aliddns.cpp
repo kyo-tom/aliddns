@@ -283,6 +283,7 @@ static int gtb_get_curr_ip (const string  &url,
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, gtb_curl_writer);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS , 30000);
 
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
