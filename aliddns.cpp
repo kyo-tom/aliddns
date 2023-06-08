@@ -376,6 +376,13 @@ int main (int argc, char *argv[])
     vector<string> domain_list_v4;
     gtb_split(root["domain_name"].asString(), ',', domain_list_v4);
     // update each ipv4 domain name
+    // get current ipv4
+    string ipv4;
+    if (gtb_get_curr_ip(root["query_ipv4"].asString(), &ipv4)) {
+        cerr << "Cannot get current IPv4." << endl;
+        return -EBUSY;
+    }
+
     for (vector<string>::iterator i = domain_list_v4.begin(); i != domain_list_v4.end(); i++) {
         // get domain name record
         if (gtb_get_domain_record(*i,
@@ -387,12 +394,6 @@ int main (int argc, char *argv[])
         }
         cout << "Old IPv4:     (" << *i << ")[" << record_value << "]" << endl;
 
-        // get current ipv4
-        string ipv4;
-        if (gtb_get_curr_ip(root["query_ipv4"].asString(), &ipv4)) {
-            cerr << "Cannot get current IPv4." << endl;
-            return -EBUSY;
-        }
         cout << "Current IPv4: (" << *i << ")[" << ipv4 << "]" << endl;
 
         // check if needed to update record
