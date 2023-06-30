@@ -143,7 +143,8 @@ static inline void gtb_sdk_shutdown ()
 static int gtb_get_domain_record (const string  &domain,
                                   string        *record_id,
                                   string        *value,
-                                  string        *rr)
+                                  string        *rr,
+                                  bool is_ipv6)
 {
     Reader      reader;
     Value       root;
@@ -159,6 +160,11 @@ static int gtb_get_domain_record (const string  &domain,
     request.setVersion(SDK_REQUEST_VERSION);
     request.setQueryParameter("Action", "DescribeSubDomainRecords");
     request.setQueryParameter("SubDomain", domain);
+    if (is_ipv6) {
+        request.setQueryParameter("Type", "AAAA");
+    } else{
+        request.setQueryParameter("Type", "A");
+    }
 
     // get response
     auto response = client->commonResponse(request);
@@ -388,7 +394,8 @@ int main (int argc, char *argv[])
         if (gtb_get_domain_record(*i,
                                   &record_id,
                                   &record_value,
-                                  &record_rr)) {
+                                  &record_rr,
+                                  false)) {
             cerr << "Invalid domain name: " << *i << endl;
             return -EINVAL;
         }
@@ -426,24 +433,26 @@ int main (int argc, char *argv[])
         vector<string> domain_list_v6;
         gtb_split(root["domain_name_v6"].asString(), ',', domain_list_v6);
 
+        // get current ipv6
+        string ipv6;
+        if (gtb_get_curr_ip(root["query_ipv6"].asString(), &ipv6)) {
+            cerr << "Cannot get current IPv6." << endl;
+            return -EBUSY;
+        }
+
         // update each ipv6 domain name
         for (vector<string>::iterator i = domain_list_v6.begin(); i != domain_list_v6.end(); i++) {
             // get domain name record
             if (gtb_get_domain_record(*i,
                                       &record_id,
                                       &record_value,
-                                      &record_rr)) {
+                                      &record_rr,
+                                      true)) {
                 cerr << "Invalid domain name: " << *i << endl;
                 return -EINVAL;
             }
             cout << "Old IPv6:     (" << *i << ")[" << record_value << "]" << endl;
 
-            // get current ipv6
-            string ipv6;
-            if (gtb_get_curr_ip(root["query_ipv6"].asString(), &ipv6)) {
-                cerr << "Cannot get current IPv6." << endl;
-                return -EBUSY;
-            }
             cout << "Current IPv6: (" << *i << ")[" << ipv6 << "]" << endl;
 
             // check if needed to update record
